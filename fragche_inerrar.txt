@@ -1,0 +1,40 @@
+
+//******************************************************************************
+// 関数名:	HRESULT CreateEnemy(void)
+// 引数:	なし
+// 戻り値:	正常終了　HRESULT型のS_OK
+// 説明:	敵を配置
+//******************************************************************************
+HRESULT CreateEnemy(D3DXVECTOR3 pos)
+{
+	LPDIRECT3DDEVICE9 pDevice = GetDevice();
+	int createno;	// 設定する構造体の番号
+
+	for (int no = 0; no < ENEMYMAX; no++)
+	{
+		if (enemyWk[no].use == false)		// 未使用みつけたら
+		{
+			enemyWk[no].use = true;
+			// HPの設定
+			enemyWk[no].enemy_maxlife = ENEMYLIFE;
+			enemyWk[no].enemy_life = enemyWk[no].enemy_maxlife;
+
+
+
+			enemyWk[no].status.pos = pos;
+			enemyWk[no].status.move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			enemyWk[no].status.puremove = enemyWk[no].status.move;
+			enemyWk[no].status.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			enemyWk[no].status.rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			enemyWk[no].status.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
+			enemyWk[no].acttime = ENEMYACT;
+
+
+			// 動作制御に必要な値を設定
+			enemyWk[no].movesetting = 0.0f;
+			enemyWk[no].movemode = SHOT;
+			return S_OK;
+			break;
+		}
+	}
+}

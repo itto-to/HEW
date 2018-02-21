@@ -1,0 +1,5 @@
+﻿  mesh.cpp
+  stage.cpp
+c:\users\ogata.kazuto\desktop\hewゲーム\stage.cpp(9): fatal error C1083: include ファイルを開けません。'vertex.h':No such file or directory
+  player.cpp
+  コードを生成中...

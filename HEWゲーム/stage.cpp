@@ -30,7 +30,7 @@ typedef struct {
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
-LPDIRECT3DTEXTURE9 g_textureObstacle;
+//LPDIRECT3DTEXTURE9 g_obstacle.texture;
 OBSTACLE g_obstacle;
 
 
@@ -47,7 +47,7 @@ HRESULT InitStage(void)
 	// テクスチャの読み込み
 	D3DXCreateTextureFromFile(pDevice,					// デバイスへのポインタ
 		TEXTURE_OBSTACLE,		// ファイルの名前
-		&g_textureObstacle);	// 読み込むメモリー
+		&g_obstacle.texture);	// 読み込むメモリー
 
 
 	return S_OK;
@@ -57,7 +57,7 @@ void UninitStage(void)
 {
 	SAFE_RELEASE(g_obstacle.vtx);
 
-	SAFE_RELEASE(g_textureObstacle);
+	SAFE_RELEASE(g_obstacle.texture);
 }
 
 void UpdateStage(void)
@@ -71,7 +71,7 @@ void DrawStage(void)
 	D3DXMATRIX mtxRot, mtxTranslate, mtxWorld;
 
 	// 頂点バッファをデバイスのデータストリームにバインド
-	pDevice->SetStreamSource(0, g_player.vtx, 0, sizeof(VERTEX_3D));
+	pDevice->SetStreamSource(0, g_obstacle.vtx, 0, sizeof(VERTEX_3D));
 
 	// 頂点フォーマットの設定
 	pDevice->SetFVF(FVF_VERTEX_3D);
@@ -80,18 +80,18 @@ void DrawStage(void)
 	D3DXMatrixIdentity(&mtxWorld);
 
 	// 回転を反映
-	D3DXMatrixRotationYawPitchRoll(&mtxRot, g_player.rot.y, g_player.rot.x, g_player.rot.z);
+	D3DXMatrixRotationYawPitchRoll(&mtxRot, g_obstacle.rot.y, g_obstacle.rot.x, g_obstacle.rot.z);
 	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxRot);
 
 	// 移動を反映
-	D3DXMatrixTranslation(&mtxTranslate, g_player.pos.x, g_player.pos.y, g_player.pos.z);
+	D3DXMatrixTranslation(&mtxTranslate, g_obstacle.pos.x, g_obstacle.pos.y, g_obstacle.pos.z);
 	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTranslate);
 
 	// ワールドマトリックスの設定
 	pDevice->SetTransform(D3DTS_WORLD, &mtxWorld);
 
 	// テクスチャの設定
-	pDevice->SetTexture(0, g_pD3DTextureKnight);
+	pDevice->SetTexture(0, g_obstacle.texture);
 
 	// 描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, NUM_POLYGON);

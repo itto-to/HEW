@@ -20,6 +20,7 @@ enum PLAYER_STATE {
 //*****************************************************************************
 typedef struct
 {
+	bool kengen;				// スキルを発動する権限を持っているかどうか
 	LPDIRECT3DTEXTURE9 texture; // テクスチャ読み込み場所
 	LPDIRECT3DVERTEXBUFFER9 vtx;
 	D3DXVECTOR3 pos;			// 現在の位置

@@ -24,7 +24,6 @@
 #define TEXTURE_PLAYER_COOK			"data/TEXTURE/player_cook.png"		// 料理人テクスチャ名
 #define TEXTURE_PLAYER_WIZARD		"data/TEXTURE/player_wizard.png"	// 魔法使いテクスチャ名
 
-
 #define PLAYER_WIDTH		(100)
 #define PLAYER_HEIGHT		(100)
 #define HALF_PLAYER_WIDTH	(PLAYER_WIDTH / 2)
@@ -40,6 +39,7 @@
 #define PLAYER_JUMP_SPEED	(15.f)						// プレイヤーのジャンプスピード
 #define GRAVITY_ACCELARATION (-0.5f)						// 重力加速度
 
+
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
@@ -50,7 +50,16 @@ HRESULT MakeVertexPlayer(LPDIRECT3DDEVICE9 pDevice, PLAYER *player);
 //*****************************************************************************
 LPDIRECT3DTEXTURE9	g_pD3DTextureKnight;		// テクスチャ読み込み場所
 
-PLAYER				g_player;					// プレイヤーワーク
+PLAYER				g_playerWk[MAX_PLAYER];					// プレイヤーワーク
+
+char *player_textureFileName[MAX_PLAYER] =
+{
+	TEXTURE_PLAYER_KNIGHT,
+	TEXTURE_PLAYER_THIEF,
+	TEXTURE_PLAYER_COOK,
+	TEXTURE_PLAYER_WIZARD,
+
+};
 
 //=============================================================================
 // 初期化処理
@@ -59,23 +68,27 @@ HRESULT InitPlayer(void)
 {
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 
-	g_pD3DTextureKnight = NULL;
+	for(int no = 0; no < MAX_PLAYER; no++)
+	{
+		g_playerWk[no].texture = NULL;
 
-	g_player.pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	g_player.move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	g_player.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	g_player.rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	g_player.ground = g_player.pos.y;
-	g_player.state = PLAYER_ONGROUND;
+		g_playerWk[MAX_PLAYER].pos = D3DXVECTOR3(0.0f, 0.0f + (no * PLAYER_RADIUS), 0.0f);
+		g_playerWk[MAX_PLAYER].move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_playerWk[MAX_PLAYER].rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_playerWk[MAX_PLAYER].rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_playerWk[MAX_PLAYER].ground = g_playerWk[MAX_PLAYER].pos.y;
+		g_playerWk[MAX_PLAYER].state = PLAYER_ONGROUND;
 
-	// 頂点作成
-	MakeVertexPlayer(pDevice, &g_player);
+		// 頂点作成
+		MakeVertexPlayer(pDevice, &g_playerWk[MAX_PLAYER]);
 
 
-	// テクスチャの読み込み
-	D3DXCreateTextureFromFile(pDevice,					// デバイスへのポインタ
-								TEXTURE_PLAYER_KNIGHT,		// ファイルの名前
-								&g_pD3DTextureKnight);	// 読み込むメモリー
+		// テクスチャの読み込み
+		D3DXCreateTextureFromFile(pDevice,					// デバイスへのポインタ
+			TEXTURE_PLAYER_KNIGHT,		// ファイルの名前
+			&g_pD3DTextureKnight);	// 読み込むメモリー
+
+	}
 
 	return S_OK;
 }
@@ -85,11 +98,14 @@ HRESULT InitPlayer(void)
 //=============================================================================
 void UninitPlayer(void)
 {
-	// テクスチャの開放
-	SAFE_RELEASE(g_pD3DTextureKnight);
+	for(int no = 0; no < MAX_PLAYER; no++)
+	{
+		// テクスチャの開放
+		SAFE_RELEASE(g_playerWk[MAX_PLAYER].texture);
 
-	// メッシュの開放
-	SAFE_RELEASE(g_player.vtx);
+		// メッシュの開放
+		SAFE_RELEASE(g_playerWk[MAX_PLAYER].vtx);
+	}
 }
 
 //=============================================================================
@@ -97,27 +113,27 @@ void UninitPlayer(void)
 //=============================================================================
 void UpdatePlayer(void)
 {
-	if (g_player.state == PLAYER_JUMP) {
-		g_player.pos += g_player.move;
-		g_player.move.y += GRAVITY_ACCELARATION;
+	if (g_playerWk[MAX_PLAYER].state == PLAYER_JUMP) {
+		g_playerWk[MAX_PLAYER].pos += g_playerWk[MAX_PLAYER].move;
+		g_playerWk[MAX_PLAYER].move.y += GRAVITY_ACCELARATION;
 	}
 
 	// ジャンプ処理
-	if (GetKeyboardTrigger(DIK_Z) && g_player.state != PLAYER_JUMP) {
-		g_player.move.y = PLAYER_JUMP_SPEED;
-		g_player.state = PLAYER_JUMP;
+	if (GetKeyboardTrigger(DIK_Z) && g_playerWk[MAX_PLAYER].state != PLAYER_JUMP) {
+		g_playerWk[MAX_PLAYER].move.y = PLAYER_JUMP_SPEED;
+		g_playerWk[MAX_PLAYER].state = PLAYER_JUMP;
 	}
 
 	// 着地処理
-	if (g_player.pos.y < g_player.ground) {
-		g_player.pos.y = g_player.ground;
-		g_player.state = PLAYER_ONGROUND;	// プレイヤーの状態を着地中に
+	if (g_playerWk[MAX_PLAYER].pos.y < g_playerWk[MAX_PLAYER].ground) {
+		g_playerWk[MAX_PLAYER].pos.y = g_playerWk[MAX_PLAYER].ground;
+		g_playerWk[MAX_PLAYER].state = PLAYER_ONGROUND;	// プレイヤーの状態を着地中に
 	}
 
 	//float fDiffRotY;
 
 	//// 目的の角度までの差分
-	//fDiffRotY = g_player.rotDest.y - g_player.rot.y;
+	//fDiffRotY = g_playerWk[MAX_PLAYER].rotDest.y - g_playerWk[MAX_PLAYER].rot.y;
 	//if(fDiffRotY > D3DX_PI)
 	//{
 	//	fDiffRotY -= D3DX_PI * 2.0f;
@@ -128,62 +144,62 @@ void UpdatePlayer(void)
 	//}
 
 	//// 目的の角度まで慣性をかける
-	//g_player.rot.y += fDiffRotY * RATE_ROTATE_PLAYER;
-	//if(g_player.rot.y > D3DX_PI)
+	//g_playerWk[MAX_PLAYER].rot.y += fDiffRotY * RATE_ROTATE_PLAYER;
+	//if(g_playerWk[MAX_PLAYER].rot.y > D3DX_PI)
 	//{
-	//	g_player.rot.y -= D3DX_PI * 2.0f;
+	//	g_playerWk[MAX_PLAYER].rot.y -= D3DX_PI * 2.0f;
 	//}
-	//if(g_player.rot.y < -D3DX_PI)
+	//if(g_playerWk[MAX_PLAYER].rot.y < -D3DX_PI)
 	//{
-	//	g_player.rot.y += D3DX_PI * 2.0f;
+	//	g_playerWk[MAX_PLAYER].rot.y += D3DX_PI * 2.0f;
 	//}
 
 	///// 位置移動
-	//g_player.pos.x += g_player.move.x;
-	//g_player.pos.y += g_player.move.y;
-	//g_player.pos.z += g_player.move.z;
+	//g_playerWk[MAX_PLAYER].pos.x += g_playerWk[MAX_PLAYER].move.x;
+	//g_playerWk[MAX_PLAYER].pos.y += g_playerWk[MAX_PLAYER].move.y;
+	//g_playerWk[MAX_PLAYER].pos.z += g_playerWk[MAX_PLAYER].move.z;
 
-	//if(g_player.pos.x < -630.0f)
+	//if(g_playerWk[MAX_PLAYER].pos.x < -630.0f)
 	//{
-	//	g_player.pos.x = -630.0f;
+	//	g_playerWk[MAX_PLAYER].pos.x = -630.0f;
 	//}
-	//if(g_player.pos.x > 630.0f)
+	//if(g_playerWk[MAX_PLAYER].pos.x > 630.0f)
 	//{
-	//	g_player.pos.x = 630.0f;
+	//	g_playerWk[MAX_PLAYER].pos.x = 630.0f;
 	//}
-	//if(g_player.pos.y < 10.0f)
+	//if(g_playerWk[MAX_PLAYER].pos.y < 10.0f)
 	//{
-	//	g_player.pos.y = 10.0f;
+	//	g_playerWk[MAX_PLAYER].pos.y = 10.0f;
 	//}
-	//if(g_player.pos.y > 150.0f)
+	//if(g_playerWk[MAX_PLAYER].pos.y > 150.0f)
 	//{
-	//	g_player.pos.y = 150.0f;
+	//	g_playerWk[MAX_PLAYER].pos.y = 150.0f;
 	//}
-	//if(g_player.pos.z > 630.0f)
+	//if(g_playerWk[MAX_PLAYER].pos.z > 630.0f)
 	//{
-	//	g_player.pos.z = 630.0f;
+	//	g_playerWk[MAX_PLAYER].pos.z = 630.0f;
 	//}
-	//if(g_player.pos.z < -630.0f)
+	//if(g_playerWk[MAX_PLAYER].pos.z < -630.0f)
 	//{
-	//	g_player.pos.z = -630.0f;
+	//	g_playerWk[MAX_PLAYER].pos.z = -630.0f;
 	//}
 
 	//// 移動量に慣性をかける
-	//g_player.move.x += (0.0f - g_player.move.x) * RATE_MOVE_PLAYER;
-	//g_player.move.y += (0.0f - g_player.move.y) * RATE_MOVE_PLAYER;
-	//g_player.move.z += (0.0f - g_player.move.z) * RATE_MOVE_PLAYER;
+	//g_playerWk[MAX_PLAYER].move.x += (0.0f - g_playerWk[MAX_PLAYER].move.x) * RATE_MOVE_PLAYER;
+	//g_playerWk[MAX_PLAYER].move.y += (0.0f - g_playerWk[MAX_PLAYER].move.y) * RATE_MOVE_PLAYER;
+	//g_playerWk[MAX_PLAYER].move.z += (0.0f - g_playerWk[MAX_PLAYER].move.z) * RATE_MOVE_PLAYER;
 
 
 
-	//if((g_player.move.x * g_player.move.x
-	//+ g_player.move.y * g_player.move.y
-	//+ g_player.move.z * g_player.move.z) > 1.0f)
+	//if((g_playerWk[MAX_PLAYER].move.x * g_playerWk[MAX_PLAYER].move.x
+	//+ g_playerWk[MAX_PLAYER].move.y * g_playerWk[MAX_PLAYER].move.y
+	//+ g_playerWk[MAX_PLAYER].move.z * g_playerWk[MAX_PLAYER].move.z) > 1.0f)
 	//{
 	//	D3DXVECTOR3 pos;
 
-	//	pos.x = g_player.pos.x + sinf(g_player.rot.y) * 10.0f;
-	//	pos.y = g_player.pos.y + 2.0f;
-	//	pos.z = g_player.pos.z + cosf(g_player.rot.y) * 10.0f;
+	//	pos.x = g_playerWk[MAX_PLAYER].pos.x + sinf(g_playerWk[MAX_PLAYER].rot.y) * 10.0f;
+	//	pos.y = g_playerWk[MAX_PLAYER].pos.y + 2.0f;
+	//	pos.z = g_playerWk[MAX_PLAYER].pos.z + cosf(g_playerWk[MAX_PLAYER].rot.y) * 10.0f;
 
 	//	// エフェクトの設定
 	//	SetEffect(pos, D3DXVECTOR3(0.0f, 0.0f, 0.0f),
@@ -205,7 +221,7 @@ void DrawPlayer(void)
 	D3DXMATRIX mtxRot, mtxTranslate, mtxWorld;
 
 	// 頂点バッファをデバイスのデータストリームにバインド
-	pDevice->SetStreamSource(0, g_player.vtx, 0, sizeof(VERTEX_3D));
+	pDevice->SetStreamSource(0, g_playerWk[MAX_PLAYER].vtx, 0, sizeof(VERTEX_3D));
 
 	// 頂点フォーマットの設定
 	pDevice->SetFVF(FVF_VERTEX_3D);
@@ -214,11 +230,11 @@ void DrawPlayer(void)
 	D3DXMatrixIdentity(&mtxWorld);
 
 	// 回転を反映
-	D3DXMatrixRotationYawPitchRoll(&mtxRot, g_player.rot.y, g_player.rot.x, g_player.rot.z);
+	D3DXMatrixRotationYawPitchRoll(&mtxRot, g_playerWk[MAX_PLAYER].rot.y, g_playerWk[MAX_PLAYER].rot.x, g_playerWk[MAX_PLAYER].rot.z);
 	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxRot);
 
 	// 移動を反映
-	D3DXMatrixTranslation(&mtxTranslate, g_player.pos.x, g_player.pos.y, g_player.pos.z);
+	D3DXMatrixTranslation(&mtxTranslate, g_playerWk[MAX_PLAYER].pos.x, g_playerWk[MAX_PLAYER].pos.y, g_playerWk[MAX_PLAYER].pos.z);
 	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTranslate);
 
 	// ワールドマトリックスの設定
@@ -291,7 +307,7 @@ HRESULT MakeVertexPlayer(LPDIRECT3DDEVICE9 pDevice, PLAYER *player)
 //=============================================================================
 PLAYER *GetPlayer(void)
 {
-	return &g_player;
+	return &g_playerWk[MAX_PLAYER];
 }
 
 //=============================================================================
@@ -299,7 +315,7 @@ PLAYER *GetPlayer(void)
 //=============================================================================
 D3DXVECTOR3 GetPositionPlayer(void)
 {
-	return g_player.pos;
+	return g_playerWk[MAX_PLAYER].pos;
 }
 
 //=============================================================================
@@ -307,7 +323,7 @@ D3DXVECTOR3 GetPositionPlayer(void)
 //=============================================================================
 D3DXVECTOR3 GetRotationPlayer(void)
 {
-	return g_player.rot;
+	return g_playerWk[MAX_PLAYER].rot;
 }
 
 //=============================================================================
@@ -315,7 +331,7 @@ D3DXVECTOR3 GetRotationPlayer(void)
 //=============================================================================
 D3DXVECTOR3 GetRotationDestPlayer(void)
 {
-	return g_player.rotDest;
+	return g_playerWk[MAX_PLAYER].rotDest;
 }
 
 //=============================================================================
@@ -323,5 +339,5 @@ D3DXVECTOR3 GetRotationDestPlayer(void)
 //=============================================================================
 D3DXVECTOR3 GetMovePlayer(void)
 {
-	return g_player.move;
+	return g_playerWk[MAX_PLAYER].move;
 }

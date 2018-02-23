@@ -41,9 +41,6 @@ HRESULT InitGame(void)
 	// ライトの初期化
 	InitLight();
 
-	// カメラの初期化
-	InitCamera();
-
 	// 影の初期化
 	//InitShadow();
 
@@ -52,18 +49,6 @@ HRESULT InitGame(void)
 
 	// 背景の初期化
 	InitBackground();
-
-	// 弾の初期化
-	//InitBullet();
-
-	// 爆発の初期化
-	//InitExplosion();
-
-	// エフェクトの初期化
-	//InitEffect();
-
-	// ライフの初期化
-	//InitLife();
 
 	// タイマーの初期化
 	InitTimer();
@@ -86,29 +71,11 @@ void UninitGame(void)
 	// ライトの終了処理
 	UninitLight();
 
-	// カメラの終了処理
-	UninitCamera();
-
-	// 影の終了処理
-	//UninitShadow();
-
 	// プレイヤーの終了処理
 	UninitPlayer();
 
 	// 背景の終了処理
 	UninitBackground();
-
-	// 弾の終了処理
-	//UninitBullet();
-
-	// 爆発の終了処理
-	//UninitExplosion();
-
-	// エフェトの終了処理
-	//UninitEffect();
-
-	// ライフの終了処理
-	//UninitLife();
 
 	// タイマーの終了処理
 	UninitTimer();
@@ -125,26 +92,11 @@ void UninitGame(void)
 //=============================================================================
 void UpdateGame(void)
 {
-	// カメラ更新
-	//UpdateCamera();
-
-	// 影処理の更新
-	//UpdateShadow();
-
 	// 背景処理の更新
 	UpdateBackground();
 
 	// プレイヤー処理の更新
 	UpdatePlayer();
-
-	// 弾処理の更新
-	//UpdateBullet();
-
-	// 爆発処理の更新
-	//UpdateExplosion();
-
-	// エフェクト処理の更新
-	//UpdateEffect();
 
 	// ライフ処理の更新
 	UpdateLife();
@@ -167,23 +119,8 @@ void DrawGame(void)
 	// 背景の描画
 	DrawBackground();
 
-	//// 影処理の描画
-	//DrawShadow();
-
 	// プレイヤー処理の描画
 	DrawPlayer();
-
-	//// 弾処理の描画
-	//DrawBullet();
-
-	//// 壁処理の描画
-	//DrawMeshWall();
-
-	//// 爆発処理の描画
-	//DrawExplosion();
-
-	//// エフェクト処理の描画
-	//DrawEffect();
 
 	// ライフ処理の描画
 	DrawLife();

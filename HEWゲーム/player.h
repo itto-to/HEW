@@ -7,6 +7,7 @@
 #ifndef _PLAYER_H_
 #define _PLAYER_H_
 
+#include "collision.h"
 #include "main.h"
 
 enum PLAYER_STATE {
@@ -29,7 +30,9 @@ typedef struct
 	D3DXVECTOR3 rotDest;		// 目的の向き
 	float ground;				// 地面の高さ
 	float distance;				// 進んだ距離
+	int life;					// プレイヤーの体力
 	PLAYER_STATE state;			// プレイヤーの状態
+	BOUNDING_BOX box;			// プレイヤーの当たり判定
 } PLAYER;
 
 //*****************************************************************************

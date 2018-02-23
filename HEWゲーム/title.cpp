@@ -35,7 +35,7 @@
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
-HRESULT MakeVertexPlayer(LPDIRECT3DDEVICE9 pDevice);
+HRESULT MakeVertexTitle(LPDIRECT3DDEVICE9 pDevice);
 void SetColorTitleLogo(void);
 
 //*****************************************************************************
@@ -67,7 +67,7 @@ HRESULT InitTitle(void)
 	g_nConutDemo = 0;
 
 	// 頂点情報の作成
-	MakeVertexPlayer(pDevice);
+	MakeVertexTitle(pDevice);
 
 	// テクスチャの読み込み
 	D3DXCreateTextureFromFile(pDevice,						// デバイスへのポインタ
@@ -237,7 +237,7 @@ void DrawTitle(void)
 //=============================================================================
 // 頂点の作成
 //=============================================================================
-HRESULT MakeVertexPlayer(LPDIRECT3DDEVICE9 pDevice)
+HRESULT MakeVertexTitle(LPDIRECT3DDEVICE9 pDevice)
 {
 	// オブジェクトの頂点バッファを生成
     if(FAILED(pDevice->CreateVertexBuffer(sizeof(VERTEX_2D) * NUM_VERTEX,	// 頂点データ用に確保するバッファサイズ(バイト単位)

@@ -30,15 +30,15 @@
 // プロトタイプ宣言
 //*****************************************************************************
 typedef struct {
-	D3DXVECTOR3		posEye;				// カメラの視点
-	D3DXVECTOR3		posAt;				// カメラの注視点
-	D3DXVECTOR3		vecUp;				// カメラの上方向
-	D3DXVECTOR3		posEyeDest;			// カメラの視点の目的位置
-	D3DXVECTOR3		posAtDest;			// カメラの注視点の目的位置
+	D3DXVECTOR3		posEye;					// カメラの視点
+	D3DXVECTOR3		posAt;					// カメラの注視点
+	D3DXVECTOR3		vecUp;					// カメラの上方向
+	D3DXVECTOR3		posEyeDest;				// カメラの視点の目的位置
+	D3DXVECTOR3		posAtDest;				// カメラの注視点の目的位置
 	D3DXVECTOR3		rotCamera;				// カメラの回転
 	float			fLengthIntervalCamera;	// カメラの視点と注視点の距離
 	float			fLengthIntervalPlayer;	// プレイヤーと注視点の距離
-	D3DXMATRIX		mtxView;					// ビューマトリックス
+	D3DXMATRIX		mtxView;				// ビューマトリックス
 	D3DXMATRIX		mtxProjection;			// プロジェクションマトリックス
 } CAMERA;
 

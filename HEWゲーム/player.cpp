@@ -28,6 +28,10 @@
 #define PLAYER_HEIGHT		(100)
 #define HALF_PLAYER_WIDTH	(PLAYER_WIDTH / 2)
 #define HALF_PLAYER_HEIGHT	(PLAYER_HEIGHT / 2)
+#define HALF_PLAYER_DEPTH	(0.0f)
+
+#define PLAYER_BB_MAX		(D3DXVECTOR3(HALF_PLAYER_WIDTH, HALF_PLAYER_HEIGHT, HALF_PLAYER_DEPTH))// プレイヤーバウンディングボックスのmax頂点座標
+#define PLAYER_BB_MIN		(-PLAYER_BB_MAX)			// プレイヤーバウンディングボックスのmin頂点座標
 
 #define	PLAYER_RADIUS		(10.0f)						// 半径
 #define	VALUE_MOVE_PLAYER	(0.155f)					// 移動速度
@@ -37,13 +41,15 @@
 #define	VALUE_MOVE_BULLET	(7.5f)						// 弾の移動速度
 #define MAX_PLAYER			(4)							// プレイヤーの数
 #define PLAYER_JUMP_SPEED	(15.f)						// プレイヤーのジャンプスピード
-#define GRAVITY_ACCELARATION (-0.5f)						// 重力加速度
+#define GRAVITY_ACCELARATION (-0.5f)					// 重力加速度
+#define MAX_LIFE			(3)							// 最大体力
 
 
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
 HRESULT MakeVertexPlayer(LPDIRECT3DDEVICE9 pDevice, PLAYER *player);
+
 
 //*****************************************************************************
 // グローバル変数
@@ -72,12 +78,17 @@ HRESULT InitPlayer(void)
 	{
 		g_playerWk[no].texture = NULL;
 
-		g_playerWk[no].pos = D3DXVECTOR3(0.0f, 0.0f + (no * PLAYER_RADIUS), 0.0f);
-		g_playerWk[no].move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-		g_playerWk[no].rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_playerWk[no].pos     = D3DXVECTOR3(0.0f, 0.0f + (no * PLAYER_RADIUS), 0.0f);
+		g_playerWk[no].move    = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_playerWk[no].rot     = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_playerWk[no].rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-		g_playerWk[no].ground = g_playerWk[no].pos.y;
-		g_playerWk[no].state = PLAYER_ONGROUND;
+		g_playerWk[no].ground  = g_playerWk[no].pos.y;
+		g_playerWk[no].life    = MAX_LIFE;
+		g_playerWk[no].state   = PLAYER_ONGROUND;
+		
+		// バウンディングボックス初期化
+		g_playerWk[no].box.max = PLAYER_BB_MAX;
+		g_playerWk[no].box.min = PLAYER_BB_MIN;
 
 		// 頂点作成
 		MakeVertexPlayer(pDevice, &g_playerWk[no]);
@@ -249,7 +260,14 @@ void DrawPlayer(void)
 
 		// 描画
 		pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, NUM_POLYGON);
+
+#ifdef _DEBUG
+		// バウンディングボックスを描画
+		ToWorldBoundingBox(g_playerWk[no].box, g_playerWk[no].pos);
+		DrawDebugBoundingBox(g_playerWk[no].box);
+#endif
 	}
+
 }
 
 

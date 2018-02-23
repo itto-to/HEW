@@ -6,6 +6,7 @@
 //=============================================================================
 #include "main.h"
 
+#include "collision.h"
 #include "debugproc.h"
 #include "fade.h"
 #include "game.h"
@@ -308,6 +309,9 @@ HRESULT Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 
 #ifdef _DEBUG
 	InitDebugProc();
+
+	// バウンディングボックス描画用初期化
+	InitDebugBoundingBox();
 #endif
 
 	return S_OK;
@@ -349,6 +353,7 @@ void Uninit(void)
 
 #ifdef _DEBUG
 	UninitDebugProc();
+	UninitDebugBoundingBox();
 #endif
 }
 

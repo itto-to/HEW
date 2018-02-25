@@ -18,6 +18,7 @@
 #include "score.h"
 #include "shadow.h"
 #include "sound.h"
+#include "stage.h"
 #include "timer.h"
 
 //*****************************************************************************
@@ -27,6 +28,8 @@
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
+void CheckHitPlayerObstacle(void);
+
 
 //*****************************************************************************
 // グローバル変数
@@ -47,6 +50,9 @@ HRESULT InitGame(void)
 	// プレイヤーの初期化
 	InitPlayer();
 
+	// ステージの初期化
+	InitStage();
+
 	// 背景の初期化
 	InitBackground();
 
@@ -59,6 +65,11 @@ HRESULT InitGame(void)
 
 	// BGM再生
 	PlaySound(SOUND_LABEL_BGM000);
+
+#ifdef _DEBUG
+	// バウンディングボックス描画用初期化
+	InitDebugBoundingBox();
+#endif
 
 	return S_OK;
 }
@@ -74,6 +85,9 @@ void UninitGame(void)
 	// プレイヤーの終了処理
 	UninitPlayer();
 
+	// ステージの終了処理
+	UninitStage();
+
 	// 背景の終了処理
 	UninitBackground();
 
@@ -85,6 +99,11 @@ void UninitGame(void)
 
 	// BGM停止
 	PlaySound(SOUND_LABEL_BGM000);
+
+#ifdef _DEBUG
+	// バウンディングボックス描画用終了処理
+	UninitDebugBoundingBox();
+#endif
 }
 
 //=============================================================================
@@ -97,6 +116,12 @@ void UpdateGame(void)
 
 	// プレイヤー処理の更新
 	UpdatePlayer();
+
+	// ステージの更新処理
+	UpdateStage();
+
+	// プレイヤーと障害物の当たり判定
+	CheckHitPlayerObstacle();
 
 	// ライフ処理の更新
 	UpdateLife();
@@ -122,6 +147,9 @@ void DrawGame(void)
 	// プレイヤー処理の描画
 	DrawPlayer();
 
+	// ステージの描画処理
+	DrawStage();
+
 	// ライフ処理の描画
 	DrawLife();
 
@@ -132,3 +160,29 @@ void DrawGame(void)
 	DrawScore();
 }
 
+void CheckHitPlayerObstacle(void)
+{
+	for (int player_no = 0; player_no < NumPlayer(); player_no++)
+	{
+		PLAYER *player = GetPlayer(player_no);
+
+		if (player->is_invincible)	// 無敵なら判定しない
+			continue;
+
+		// プレイヤーのバウンディングボックス取得
+		BOUNDING_BOX playerBox = ToWorldBoundingBox(player->hitBox, player->pos);
+
+		// 障害物のバウンディングボックス取得
+		OBSTACLE *obstacle = GetObstacle();
+		BOUNDING_BOX obstacleBox = ToWorldBoundingBox(obstacle->hitBox, obstacle->pos);
+
+		if (IsIntersectedBoundingBox(playerBox, obstacleBox))
+		{
+			// プレイヤーのライフ減少
+			player->life--;
+			// 無敵状態に
+			player->is_invincible = true;
+			player->invincible_counter = 0;
+		}
+	}
+}

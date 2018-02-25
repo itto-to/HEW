@@ -6,6 +6,7 @@
 //=============================================================================
 #include "camera.h"
 
+#include "collision.h"
 #include "debugproc.h"
 #include "input.h"
 #include "player.h"
@@ -27,7 +28,7 @@
 #define	CHASE_HEIGHT_R		(10.0f)					// 追跡時の注視点の高さ
 
 //*****************************************************************************
-// プロトタイプ宣言
+// 構造体宣言
 //*****************************************************************************
 typedef struct {
 	D3DXVECTOR3		posEye;					// カメラの視点
@@ -36,10 +37,11 @@ typedef struct {
 	D3DXVECTOR3		posEyeDest;				// カメラの視点の目的位置
 	D3DXVECTOR3		posAtDest;				// カメラの注視点の目的位置
 	D3DXVECTOR3		rotCamera;				// カメラの回転
-	float			fLengthIntervalCamera;	// カメラの視点と注視点の距離
-	float			fLengthIntervalPlayer;	// プレイヤーと注視点の距離
+	float			lengthIntervalCamera;	// カメラの視点と注視点の距離
+	float			lengthIntervalPlayer;	// プレイヤーと注視点の距離
 	D3DXMATRIX		mtxView;				// ビューマトリックス
 	D3DXMATRIX		mtxProjection;			// プロジェクションマトリックス
+	BOUNDING_BOX	screenBox;				// 画面外判定用バウンディングボックス
 } CAMERA;
 
 //*****************************************************************************
@@ -58,6 +60,10 @@ HRESULT InitCamera(void)
 	g_camera.posEyeDest = g_camera.posEye;
 	g_camera.posAtDest = g_camera.posAtDest;
 	g_camera.rotCamera = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+
+	// 画面外判定用バウンディングボックス初期化
+	g_camera.screenBox.max = D3DXVECTOR3(g_camera.posEye.x + SCREEN_WIDTH / 2.0f, g_camera.posEye.y + SCREEN_HEIGHT / 2.0f, g_camera.posEye.z + VIEW_FAR_Z);
+	g_camera.screenBox.min = D3DXVECTOR3(g_camera.posEye.x - SCREEN_WIDTH / 2.0f, g_camera.posEye.y - SCREEN_HEIGHT / 2.0f, g_camera.posEye.z + VIEW_NEAR_Z);
 
 	//float vx,vz;
 	//vx = g_camera.posEye.x - g_camera.posAt.x;
@@ -80,9 +86,10 @@ void UninitCamera(void)
 //=============================================================================
 void UpdateCamera(void)
 {
+#ifdef _DEBUG
 	PrintDebugProc("カメラ視点   X:%f, Y:%f, Z:%f\n", g_camera.posEye.x, g_camera.posEye.y, g_camera.posEye.z);
 	PrintDebugProc("カメラ注視点 X:%f, Y:%f, Z:%f\n", g_camera.posAt.x, g_camera.posAt.y, g_camera.posAt.z);
-
+#endif
 	//D3DXVECTOR3 posPlayer;
 	//D3DXVECTOR3 rotPlayer;
 	//D3DXVECTOR3 movePlayer;
@@ -135,7 +142,7 @@ void SetCamera(void)
 	// ビューマトリックスの作成
 	D3DXMatrixLookAtLH(&camera->mtxView, 
 						&camera->posEye,		// カメラの視点
-						&camera->posAt,		// カメラの注視点
+						&camera->posAt,			// カメラの注視点
 						&camera->vecUp);		// カメラの上方向
 
 	// ビューマトリックスの設定
@@ -159,3 +166,17 @@ D3DXMATRIX GetMtxView(void)
 	return g_camera.mtxView;
 }
 
+
+//=============================================================================
+// オブジェクトが画面外にでたらtrueを返す
+//=============================================================================
+bool IsObjectOffscreen(BOUNDING_BOX objectBox)
+{
+	BOUNDING_BOX cameraBox;
+	cameraBox.min = g_camera.posEye;
+	if (IsIntersectedBoundingBox(g_camera.screenBox, objectBox)) {
+		return false;
+	}
+
+	return true;
+}

@@ -6,6 +6,7 @@
 //=============================================================================
 #include "main.h"
 
+#include "camera.h"
 #include "collision.h"
 #include "debugproc.h"
 #include "fade.h"
@@ -304,6 +305,9 @@ HRESULT Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	// サウンドの初期化
 	InitSound(hWnd);
 
+	// カメラの初期化
+	InitCamera();
+
 	// 最初はタイトル画面に
 	SetScene(SCENE_TITLE);
 
@@ -330,17 +334,14 @@ void Uninit(void)
 	//}
 #endif
 
-	if(g_pD3DDevice != NULL)
-	{// デバイスの開放
-		g_pD3DDevice->Release();
-		g_pD3DDevice = NULL;
-	}
+	// デバイスの開放
+	SAFE_RELEASE(g_pD3DDevice);
 
-	if(g_pD3D != NULL)
-	{// Direct3Dオブジェクトの開放
-		g_pD3D->Release();
-		g_pD3D = NULL;
-	}
+	// Direct3Dオブジェクトの開放
+	SAFE_RELEASE(g_pD3D);
+
+	// カメラの終了処理
+	UninitCamera();
 
 	// フェードの終了処理
 	UninitFade();

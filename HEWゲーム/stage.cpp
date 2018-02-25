@@ -6,6 +6,7 @@
 //=============================================================================
 #include "stage.h"
 
+#include "camera.h"
 #include "mesh.h"
 
 //*****************************************************************************
@@ -15,17 +16,11 @@
 #define OBSTACLE_WIDTH	(100)
 #define OBSTACLE_HEIGHT	(100)
 
+
 //*****************************************************************************
 // 構造体宣言
 //*****************************************************************************
-typedef struct {
-	LPDIRECT3DTEXTURE9 texture; // テクスチャ読み込み場所
-	LPDIRECT3DVERTEXBUFFER9 vtx;// 頂点バッファ
-	D3DXVECTOR3 pos;			// 現在の位置
-	D3DXVECTOR3 move;			// 移動量
-	D3DXVECTOR3 rot;			// 現在の向き
-	D3DXVECTOR3 rotDest;		// 目的の向き
-} OBSTACLE;
+
 
 //*****************************************************************************
 // グローバル変数
@@ -38,11 +33,19 @@ HRESULT InitStage(void)
 {
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 
-	g_obstacle.pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	g_obstacle.pos = D3DXVECTOR3(-SCREEN_WIDTH / 2.0f, 0.0f, 0.0f);
+	g_obstacle.move = D3DXVECTOR3(10.f, 0.0f, 0.0f);
 	g_obstacle.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	g_obstacle.rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+
+	// 当たり判定初期化
+	InitBoundingBox(&g_obstacle.hitBox, D3DXVECTOR3(0.0f, 0.0f, 0.0f), OBSTACLE_WIDTH, OBSTACLE_HEIGHT, 0.0f);
+
+	// 画面外判定初期化
+	InitBoundingBox(&g_obstacle.screenBox, D3DXVECTOR3(0.0f, 0.0f, 0.0f), OBSTACLE_WIDTH, OBSTACLE_HEIGHT, 0.0f);
 
 	// 頂点作成
-	MakeVertex(pDevice, g_obstacle.vtx, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
+	MakeVertex(pDevice, &g_obstacle.vtx, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
 
 	// テクスチャの読み込み
 	D3DXCreateTextureFromFile(pDevice,					// デバイスへのポインタ
@@ -56,19 +59,24 @@ HRESULT InitStage(void)
 void UninitStage(void)
 {
 	SAFE_RELEASE(g_obstacle.vtx);
-
 	SAFE_RELEASE(g_obstacle.texture);
 }
 
 void UpdateStage(void)
 {
+	g_obstacle.pos += g_obstacle.move;
 
+	BOUNDING_BOX worldBox = ToWorldBoundingBox(g_obstacle.hitBox, g_obstacle.pos);
+	if (IsObjectOffscreen(worldBox))
+	{
+		g_obstacle.pos.x = -SCREEN_WIDTH / 2.0f;
+	}
 }
 
 void DrawStage(void)
 {
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
-	D3DXMATRIX mtxRot, mtxTranslate, mtxWorld;
+	D3DXMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
 
 	// 頂点バッファをデバイスのデータストリームにバインド
 	pDevice->SetStreamSource(0, g_obstacle.vtx, 0, sizeof(VERTEX_3D));
@@ -78,6 +86,10 @@ void DrawStage(void)
 
 	// ワールドマトリックスの初期化
 	D3DXMatrixIdentity(&mtxWorld);
+
+	// スケールを反映
+	D3DXMatrixIdentity(&mtxScl);
+	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxScl);
 
 	// 回転を反映
 	D3DXMatrixRotationYawPitchRoll(&mtxRot, g_obstacle.rot.y, g_obstacle.rot.x, g_obstacle.rot.z);
@@ -95,5 +107,9 @@ void DrawStage(void)
 
 	// 描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, NUM_POLYGON);
+}
 
+OBSTACLE *GetObstacle(void)
+{
+	return &g_obstacle;
 }

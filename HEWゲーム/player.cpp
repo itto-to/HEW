@@ -13,6 +13,7 @@
 #include "bullet.h"
 #include "effect.h"
 #include "item.h"
+#include "mesh.h"
 #include "score.h"
 #include "sound.h"
 
@@ -43,6 +44,7 @@
 #define PLAYER_JUMP_SPEED	(15.f)						// プレイヤーのジャンプスピード
 #define GRAVITY_ACCELARATION (-0.5f)					// 重力加速度
 #define MAX_LIFE			(3)							// 最大体力
+#define INVINCIBLE_FRAME	(300)						// 敵と当たった後の無敵フレーム
 
 
 //*****************************************************************************
@@ -55,8 +57,8 @@ HRESULT MakeVertexPlayer(LPDIRECT3DDEVICE9 pDevice, PLAYER *player);
 // グローバル変数
 //*****************************************************************************
 LPDIRECT3DTEXTURE9	g_pD3DTextureKnight;		// テクスチャ読み込み場所
-
-PLAYER				g_playerWk[MAX_PLAYER];					// プレイヤーワーク
+int					g_num_player;				// プレイヤーの人数
+PLAYER				g_playerWk[MAX_PLAYER];		// プレイヤーワーク
 
 char *player_textureFileName[MAX_PLAYER] =
 {
@@ -74,32 +76,39 @@ HRESULT InitPlayer(void)
 {
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 
+	// プレイ人数設定
+	g_num_player = MAX_PLAYER;
+
 	for(int no = 0; no < MAX_PLAYER; no++)
 	{
 		g_playerWk[no].texture = NULL;
 
-		g_playerWk[no].pos     = D3DXVECTOR3(0.0f, 0.0f + (no * PLAYER_RADIUS), 0.0f);
+		g_playerWk[no].pos     = D3DXVECTOR3(0.0f, 0.0f + (no * 100), 0.0f);
 		g_playerWk[no].move    = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_playerWk[no].rot     = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_playerWk[no].rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		g_playerWk[no].scl     = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 		g_playerWk[no].ground  = g_playerWk[no].pos.y;
 		g_playerWk[no].life    = MAX_LIFE;
 		g_playerWk[no].state   = PLAYER_ONGROUND;
 		
-		// バウンディングボックス初期化
-		g_playerWk[no].box.max = PLAYER_BB_MAX;
-		g_playerWk[no].box.min = PLAYER_BB_MIN;
+		// 当たり判定初期化
+		g_playerWk[no].hitBox.max = PLAYER_BB_MAX;
+		g_playerWk[no].hitBox.min = PLAYER_BB_MIN;
+
+		// 画面外判定用バウンディングボックス初期化
+		// 画面外判定初期化
+		InitBoundingBox(&g_playerWk[no].screenBox, D3DXVECTOR3(0.0f, 0.0f, 0.0f), PLAYER_WIDTH, PLAYER_HEIGHT, 0.0f);
 
 		// 頂点作成
-		MakeVertexPlayer(pDevice, &g_playerWk[no]);
-
-
-		// テクスチャの読み込み
-		D3DXCreateTextureFromFile(pDevice,					// デバイスへのポインタ
-			TEXTURE_PLAYER_KNIGHT,		// ファイルの名前
-			&g_pD3DTextureKnight);	// 読み込むメモリー
-
+		MakeVertex(pDevice, &g_playerWk[no].vtx, PLAYER_WIDTH, PLAYER_HEIGHT);
+		//MakeVertexPlayer(pDevice, &g_playerWk[no]);
 	}
+
+	// テクスチャの読み込み
+	D3DXCreateTextureFromFile(pDevice,					// デバイスへのポインタ
+		TEXTURE_PLAYER_KNIGHT,		// ファイルの名前
+		&g_pD3DTextureKnight);	// 読み込むメモリー
 
 	return S_OK;
 }
@@ -142,6 +151,17 @@ void UpdatePlayer(void)
 			g_playerWk[no].pos.y = g_playerWk[no].ground;
 			g_playerWk[no].state = PLAYER_ONGROUND;	// プレイヤーの状態を着地中に
 		}
+
+		// 無敵カウントが一定以上なら元の状態に
+		if (g_playerWk[no].is_invincible)
+		{
+			g_playerWk[no].invincible_counter++;
+			if (g_playerWk[no].invincible_counter > INVINCIBLE_FRAME)
+			{
+				g_playerWk[no].is_invincible = false;
+			}
+		}
+
 
 		//float fDiffRotY;
 
@@ -233,38 +253,77 @@ void DrawPlayer(void)
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 	D3DXMATRIX mtxRot, mtxTranslate, mtxWorld;
 
-	for(int no = 0; no < MAX_PLAYER; no++)
+	for (int no = 0; no < MAX_PLAYER; no++)
 	{
-		// 頂点バッファをデバイスのデータストリームにバインド
-		pDevice->SetStreamSource(0, g_playerWk[no].vtx, 0, sizeof(VERTEX_3D));
-
-		// 頂点フォーマットの設定
-		pDevice->SetFVF(FVF_VERTEX_3D);
-
-		// ワールドマトリックスの初期化
-		D3DXMatrixIdentity(&mtxWorld);
-
-		// 回転を反映
-		D3DXMatrixRotationYawPitchRoll(&mtxRot, g_playerWk[no].rot.y, g_playerWk[no].rot.x, g_playerWk[no].rot.z);
-		D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxRot);
-
-		// 移動を反映
-		D3DXMatrixTranslation(&mtxTranslate, g_playerWk[no].pos.x, g_playerWk[no].pos.y, g_playerWk[no].pos.z);
-		D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTranslate);
-
-		// ワールドマトリックスの設定
-		pDevice->SetTransform(D3DTS_WORLD, &mtxWorld);
-
-		// テクスチャの設定
-		pDevice->SetTexture(0, g_pD3DTextureKnight);
 
 		// 描画
-		pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, NUM_POLYGON);
+		if (!g_playerWk[no].is_invincible || ((g_playerWk[no].invincible_counter % 10) > 4))
+		{
+			DrawMesh(g_playerWk[no].vtx, g_playerWk[no].texture, g_playerWk[no].pos, g_playerWk[no].rot, g_playerWk[no].scl);
+		}
+
+		//// 頂点バッファをデバイスのデータストリームにバインド
+		//pDevice->SetStreamSource(0, g_playerWk[no].vtx, 0, sizeof(VERTEX_3D));
+
+		//// 頂点フォーマットの設定
+		//pDevice->SetFVF(FVF_VERTEX_3D);
+
+		//// ワールドマトリックスの初期化
+		//D3DXMatrixIdentity(&mtxWorld);
+
+		//// 回転を反映
+		//D3DXMatrixRotationYawPitchRoll(&mtxRot, g_playerWk[no].rot.y, g_playerWk[no].rot.x, g_playerWk[no].rot.z);
+		//D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxRot);
+
+		//// 移動を反映
+		//D3DXMatrixTranslation(&mtxTranslate, g_playerWk[no].pos.x, g_playerWk[no].pos.y, g_playerWk[no].pos.z);
+		//D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTranslate);
+
+		//// ワールドマトリックスの設定
+		//pDevice->SetTransform(D3DTS_WORLD, &mtxWorld);
+
+		//// テクスチャの設定
+		//pDevice->SetTexture(0, g_pD3DTextureKnight);
+
+		//// 描画
+		//if (!g_playerWk[no].is_invincible || ((g_playerWk[no].invincible_counter % 10) > 4))
+		//{
+		//	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, NUM_POLYGON);
+		//}
 
 #ifdef _DEBUG
 		// バウンディングボックスを描画
-		ToWorldBoundingBox(g_playerWk[no].box, g_playerWk[no].pos);
-		DrawDebugBoundingBox(g_playerWk[no].box);
+		BOUNDING_BOX worldBox = ToWorldBoundingBox(g_playerWk[no].hitBox, g_playerWk[no].pos);
+		DrawDebugBoundingBox(worldBox);
+
+		// デバッグ情報を表示
+		D3DXVECTOR3 pos = g_playerWk[no].pos;
+		PrintDebugProc("***プレイヤー%d番***\n", no);
+		PrintDebugProc("座標 X：%f Y:%f Z:%f\n", pos.x, pos.y, pos.z);
+		PrintDebugProc("ライフ : %d\n", g_playerWk[no].life);
+
+		switch (g_playerWk[no].state)
+		{
+		case PLAYER_ONGROUND:
+			PrintDebugProc("状態：%s", "着地\n");
+			break;
+
+		case PLAYER_JUMP:
+			PrintDebugProc("状態：%s", "ジャンプ\n");
+			break;
+
+		case PLAYER_DEAD:
+			PrintDebugProc("状態：%s", "死亡\n");
+			break;
+		}
+
+		if (g_playerWk[no].is_invincible) {
+			PrintDebugProc("無敵\n");
+		}
+		else {
+			PrintDebugProc("無敵じゃない\n");
+		}
+
 #endif
 	}
 
@@ -328,9 +387,9 @@ HRESULT MakeVertexPlayer(LPDIRECT3DDEVICE9 pDevice, PLAYER *player)
 //=============================================================================
 // プレイヤーを取得
 //=============================================================================
-PLAYER *GetPlayer(void)
+PLAYER *GetPlayer(int no)
 {
-	return &g_playerWk[0];
+	return &g_playerWk[no];
 }
 
 //=============================================================================
@@ -363,4 +422,12 @@ D3DXVECTOR3 GetRotationDestPlayer(void)
 D3DXVECTOR3 GetMovePlayer(void)
 {
 	return g_playerWk[0].move;
+}
+
+//=============================================================================
+// 現在のプレイヤー人数取得
+//=============================================================================
+int NumPlayer(void)
+{
+	return g_num_player;
 }

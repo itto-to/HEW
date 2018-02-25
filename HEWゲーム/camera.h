@@ -7,6 +7,7 @@
 #ifndef _CAMERA_H_
 #define _CAMERA_H_
 
+#include "collision.h"
 #include "main.h"
 
 //*****************************************************************************
@@ -20,5 +21,6 @@ void SetCamera(void);
 
 D3DXVECTOR3 GetRotCamera(void);
 D3DXMATRIX GetMtxView(void);
+bool IsObjectOffscreen(BOUNDING_BOX objectBox);
 
 #endif

@@ -135,15 +135,15 @@ void DrawDebugBoundingBox(BOUNDING_BOX box)
 	// ワールドマトリックスの初期化
 	D3DXMatrixIdentity(&mtxWorld);
 
-	//// スケールを反映
-	//float x = BoundingBoxSizeX(box);
-	//float y = BoundingBoxSizeY(box);
-	//D3DXMatrixScaling(&mtxScl, x, y, 1.0f);
-	//D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxScl);
+	// スケールを反映
+	float x = BoundingBoxSizeX(box);
+	float y = BoundingBoxSizeY(box);
+	D3DXMatrixScaling(&mtxScl, x, y, 1.0f);
+	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxScl);
 
 	//// 移動を反映
 	D3DXVECTOR3 center = BoundingBoxCenter(box);
-	D3DXMatrixTranslation(&mtxTranslate, center.x, center.y, center.z);
+	D3DXMatrixTranslation(&mtxTranslate, center.x, center.y, center.z - 10.f);
 	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTranslate);
 
 	// ワールドマトリックスの設定

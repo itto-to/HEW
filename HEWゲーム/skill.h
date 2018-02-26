@@ -35,8 +35,12 @@ typedef struct
 //**************************************************************
 // プロトタイプ宣言
 //**************************************************************
-
-
+HRESULT InitSkill(void);
+void UninitSkill(void);
+void UpdateSkill(float gageup);
+void DrawSkill(void);
+HRESULT MakeVertexSkill(LPDIRECT3DDEVICE9 pDevice);
+void SetColorSkill(void);
 
 
 #endif

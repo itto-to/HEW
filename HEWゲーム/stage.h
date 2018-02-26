@@ -8,7 +8,9 @@
 #define _STAGE_H_
 
 #include "collision.h"
+#include "game.h"
 #include "main.h"
+
 
 //*****************************************************************************
 // \‘¢‘ÌéŒ¾

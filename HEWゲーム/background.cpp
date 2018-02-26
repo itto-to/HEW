@@ -12,7 +12,7 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define TEXTURE_BACKGROUND		"data/TEXTURE/bg001.jpg"
+#define TEXTURE_BG_PLAIN		"data/TEXTURE/bg_plain.png"
 
 
 //*****************************************************************************
@@ -46,7 +46,7 @@ HRESULT InitBackground()
 	MakeVertex(pDevice, &g_background.vtx, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	// テクスチャ作成
-	if (FAILED(D3DXCreateTextureFromFile(pDevice, TEXTURE_BACKGROUND, &g_background.texture)))
+	if (FAILED(D3DXCreateTextureFromFile(pDevice, TEXTURE_BG_PLAIN, &g_background.texture)))
 	{
 		return E_FAIL;
 	}

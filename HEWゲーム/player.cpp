@@ -12,6 +12,7 @@
 #include "shadow.h"
 #include "bullet.h"
 #include "effect.h"
+#include "game.h"
 #include "item.h"
 #include "mesh.h"
 #include "score.h"
@@ -34,23 +35,37 @@
 #define PLAYER_BB_MAX		(D3DXVECTOR3(HALF_PLAYER_WIDTH, HALF_PLAYER_HEIGHT, HALF_PLAYER_DEPTH))// プレイヤーバウンディングボックスのmax頂点座標
 #define PLAYER_BB_MIN		(-PLAYER_BB_MAX)			// プレイヤーバウンディングボックスのmin頂点座標
 
-#define	PLAYER_RADIUS		(10.0f)						// 半径
+#define	PLAYER_PADDING		(-100.0f)					// プレイヤー同士の間隔
 #define	VALUE_MOVE_PLAYER	(0.155f)					// 移動速度
 #define	RATE_MOVE_PLAYER	(0.025f)					// 移動慣性係数
 #define	VALUE_ROTATE_PLAYER	(D3DX_PI * 0.025f)			// 回転速度
 #define	RATE_ROTATE_PLAYER	(0.10f)						// 回転慣性係数
 #define	VALUE_MOVE_BULLET	(7.5f)						// 弾の移動速度
-#define MAX_PLAYER			(4)							// プレイヤーの数
-#define PLAYER_JUMP_SPEED	(15.f)						// プレイヤーのジャンプスピード
+#define PLAYER_JUMP_SPEED	(15.f)						// プレイヤーのジャンプ初速
+#define PLAYER_BIG_JUMP_SPEED (20.f)					// プレイヤーの大ジャンプ初速
 #define GRAVITY_ACCELARATION (-0.5f)					// 重力加速度
 #define MAX_LIFE			(3)							// 最大体力
-#define INVINCIBLE_FRAME	(300)						// 敵と当たった後の無敵フレーム
+#define INVINCIBLE_FRAME	(100)						// 敵と当たった後の無敵フレーム
+#define SLIDING_HIT_BOX		{D3DXVECTOR3(-HALF_PLAYER_WIDTH, -HALF_PLAYER_HEIGHT, -HALF_PLAYER_DEPTH), D3DXVECTOR3(HALF_PLAYER_WIDTH, 0.0f, HALF_PLAYER_DEPTH)}
 
 
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
 HRESULT MakeVertexPlayer(LPDIRECT3DDEVICE9 pDevice, PLAYER *player);
+
+void EnterPlayerOnGround(PLAYER *player);
+void EnterPlayerJump(PLAYER *player);
+void EnterPlayerDead(PLAYER *player);
+
+void ExitPlayerOnGround(PLAYER *player);
+void ExitPlayerJump(PLAYER *player);
+void ExitPlayerDead(PLAYER *player);
+
+void UpdatePlayerOnGround(PLAYER *player);
+void UpdatePlayerJump(PLAYER *player);
+void UpdatePlayerDead(PLAYER *player);
+
 
 
 //*****************************************************************************
@@ -66,7 +81,6 @@ char *player_textureFileName[MAX_PLAYER] =
 	TEXTURE_PLAYER_THIEF,
 	TEXTURE_PLAYER_COOK,
 	TEXTURE_PLAYER_WIZARD,
-
 };
 
 //=============================================================================
@@ -83,7 +97,8 @@ HRESULT InitPlayer(void)
 	{
 		g_playerWk[no].texture = NULL;
 
-		g_playerWk[no].pos     = D3DXVECTOR3(0.0f, 0.0f + (no * 100), 0.0f);
+		g_playerWk[no].id      = no;
+		g_playerWk[no].pos     = D3DXVECTOR3(100.0f, LANE_Y(no), LANE_Z(no));
 		g_playerWk[no].move    = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_playerWk[no].rot     = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_playerWk[no].rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -103,12 +118,22 @@ HRESULT InitPlayer(void)
 		// 頂点作成
 		MakeVertex(pDevice, &g_playerWk[no].vtx, PLAYER_WIDTH, PLAYER_HEIGHT);
 		//MakeVertexPlayer(pDevice, &g_playerWk[no]);
+
 	}
 
 	// テクスチャの読み込み
-	D3DXCreateTextureFromFile(pDevice,					// デバイスへのポインタ
-		TEXTURE_PLAYER_KNIGHT,		// ファイルの名前
-		&g_pD3DTextureKnight);	// 読み込むメモリー
+	D3DXCreateTextureFromFile(pDevice,	// デバイスへのポインタ
+		TEXTURE_PLAYER_KNIGHT,			// ファイルの名前
+		&g_playerWk[0].texture);		// 読み込むメモリー
+	D3DXCreateTextureFromFile(pDevice,	// デバイスへのポインタ
+		TEXTURE_PLAYER_WIZARD,			// ファイルの名前
+		&g_playerWk[1].texture);		// 読み込むメモリー
+	D3DXCreateTextureFromFile(pDevice,	// デバイスへのポインタ
+		TEXTURE_PLAYER_THIEF,			// ファイルの名前
+		&g_playerWk[2].texture);		// 読み込むメモリー
+	D3DXCreateTextureFromFile(pDevice,	// デバイスへのポインタ
+		TEXTURE_PLAYER_COOK,			// ファイルの名前
+		&g_playerWk[3].texture);		// 読み込むメモリー
 
 	return S_OK;
 }
@@ -133,21 +158,60 @@ void UninitPlayer(void)
 //=============================================================================
 void UpdatePlayer(void)
 {
+
 	for(int no = 0; no < MAX_PLAYER; no++)
 	{
-		if(g_playerWk[no].state == PLAYER_JUMP) {
+		switch (g_playerWk[no].state)
+		{
+		case PLAYER_ONGROUND:
+		//	UpdatePlayerOnGround(&g_playerWk[no]);
+		//	break;
+
+		//case PLAYER_JUMP:
+		//	UpdatePlayerJump(&g_playerWk[no]);
+		//	break;
+
+		//case PLAYER_DEAD:
+		//	UpdatePlayerDead(&g_playerWk[no]);
+		//	break;
+
+		default:
+			break;
+		}
+
+		// 死亡判定
+		if (g_playerWk[no].life <= 0) {
+			g_playerWk[no].state = PLAYER_DEAD;
+		}
+
+		if(g_playerWk[no].state == PLAYER_JUMP)
+		{
 			g_playerWk[no].pos += g_playerWk[no].move;
 			g_playerWk[no].move.y += GRAVITY_ACCELARATION;
 		}
 
 		// ジャンプ処理
-		if(GetKeyboardTrigger(DIK_Z) && g_playerWk[no].state != PLAYER_JUMP) {
+		if(GetKeyboardTrigger(DIK_Z) && g_playerWk[no].state != PLAYER_JUMP)
+		{
 			g_playerWk[no].move.y = PLAYER_JUMP_SPEED;
 			g_playerWk[no].state = PLAYER_JUMP;
 		}
+		else if (GetKeyboardTrigger(DIK_X) && g_playerWk[no].state != PLAYER_JUMP)
+		{
+			g_playerWk[no].move.y = PLAYER_BIG_JUMP_SPEED;
+			g_playerWk[no].state = PLAYER_JUMP;
+		}
+
+		// スライディング処理
+		if (GetKeyboardTrigger(DIK_DOWN)) 
+		{
+			// 当たり判定を小さくする
+			g_playerWk[no].hitBox = SLIDING_HIT_BOX;
+		}
 
 		// 着地処理
-		if(g_playerWk[no].pos.y < g_playerWk[no].ground) {
+		if(g_playerWk[no].pos.y < g_playerWk[no].ground)
+		{
 			g_playerWk[no].pos.y = g_playerWk[no].ground;
 			g_playerWk[no].state = PLAYER_ONGROUND;	// プレイヤーの状態を着地中に
 		}

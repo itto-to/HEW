@@ -7,6 +7,7 @@
 #include "stage.h"
 
 #include "camera.h"
+#include "collision.h"
 #include "mesh.h"
 
 //*****************************************************************************
@@ -20,20 +21,31 @@
 //*****************************************************************************
 // 構造体宣言
 //*****************************************************************************
-
+typedef struct {
+	bool use;			// プレイヤーが参加していればtrue
+	float speed_factor; // 速度係数 デフォルトは1.0f
+} LANE;
 
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
-//LPDIRECT3DTEXTURE9 g_obstacle.texture;
+LANE g_lane[MAX_PLAYER];
 OBSTACLE g_obstacle;
+
 
 
 HRESULT InitStage(void)
 {
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 
-	g_obstacle.pos = D3DXVECTOR3(-SCREEN_WIDTH / 2.0f, 0.0f, 0.0f);
+	// レーン初期化
+	for (int no = 0; no < MAX_PLAYER; no++)
+	{
+		g_lane[no].use = true;
+		g_lane[no].speed_factor = 1.0f;
+	}
+
+	g_obstacle.pos = D3DXVECTOR3(-SCREEN_WIDTH / 2.0f, LANE_Y(0), LANE_Z(0));
 	g_obstacle.move = D3DXVECTOR3(10.f, 0.0f, 0.0f);
 	g_obstacle.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	g_obstacle.rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -107,6 +119,11 @@ void DrawStage(void)
 
 	// 描画
 	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, NUM_POLYGON);
+
+#ifdef _DEBUG
+	BOUNDING_BOX worldBox = ToWorldBoundingBox(g_obstacle.hitBox, g_obstacle.pos);
+	DrawDebugBoundingBox(worldBox);
+#endif
 }
 
 OBSTACLE *GetObstacle(void)

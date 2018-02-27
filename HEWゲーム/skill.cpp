@@ -127,18 +127,16 @@ void UpdateSkill(float gageup)
 		skillWk.gage = 0.0f;		// 値を初期化
 	}
 
-	// 権限を付与する？(誰かが5連続で飛んだ？)
-	// skillpointが5になっているプレイヤーを探す
+	// skillpointが5になっているプレイヤー全員に権限を付与
 	for(int i = 0; i < MAX_PLAYER; i++)
 	{
 		if(player[i].skillpoint >= 5)
 		{
-
+			player[i].kengen = true;
 		}
 	}
-
-
-	// 優先順位
+	// 優先順位決定
+	GetSkill(0);
 
 }
 
@@ -317,20 +315,20 @@ void GetSkill(int no)
 	int old_getskill;				// 直前に権限を持っているプレイヤー
 	
 
-	// 既に権限を持っているプレイヤーはいる？
-	for(int i = 0; i< MAX_PLAYER; no++)
-	{
-		if(player[i].kengen == true)
-		{
-			old_getskill = i;					// 権限を持っているプレイヤーの番号を保存し
-			player[i].kengen = false;			// フラグをオフに
-			break;
-		}
-	}
+	//// 既に権限を持っているプレイヤーはいる？
+	//for(int i = 0; i< MAX_PLAYER; no++)
+	//{
+	//	if(player[i].kengen == true)
+	//	{
+	//		old_getskill = i;					// 権限を持っているプレイヤーの番号を保存し
+	//		player[i].kengen = false;			// フラグをオフに
+	//		break;
+	//	}
+	//}
 
 
-	// 一度全てのフラグを初期化
-	player[no].kengen = true;		// 5回飛んだプレイヤーに権限付与
+	//// 一度全てのフラグを初期化
+	//player[no].kengen = true;		// 5回飛んだプレイヤーに権限付与
 	
 	// ライフが少ない人
 

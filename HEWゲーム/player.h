@@ -49,7 +49,15 @@ enum PLAYER_STATE {
 //*****************************************************************************
 typedef struct
 {
+<<<<<<< HEAD
+	// スキル利用の為に追加
+	int skillpoint;
+
+
+	
+=======
 	int id;				// プレイヤー番号
+>>>>>>> 6b37191a1bfd7515aa0d0fa6763d691d75040191
 	bool kengen;				// スキルを発動する権限を持っているかどうか
 	LPDIRECT3DTEXTURE9 texture; // テクスチャ読み込み場所
 	LPDIRECT3DVERTEXBUFFER9 vtx;

@@ -37,8 +37,11 @@ typedef struct
 //**************************************************************
 HRESULT InitSkill(void);
 void UninitSkill(void);
-void UpdateSkill(void);
+void UpdateSkill(float gageup);
 void DrawSkill(void);
-
+HRESULT MakeVertexSkill(LPDIRECT3DDEVICE9 pDevice);
+void SetColorSkill(void);
+void GetSkill(int no);
+void SkillReset(int no);
 
 #endif

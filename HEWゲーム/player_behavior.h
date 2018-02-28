@@ -9,6 +9,8 @@
 
 #include "player.h"
 
+void ChangePlayerState(PLAYER *player);
+
 void EnterPlayerOnGround(PLAYER *player);
 void EnterPlayerJump(PLAYER *player);
 void EnterPlayerSliding(PLAYER *player);

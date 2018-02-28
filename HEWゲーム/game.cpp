@@ -122,7 +122,7 @@ void UpdateGame(void)
 	CheckHitPlayerObstacle();
 
 	// スキルの更新処理
-	UpdateSkill();
+	UpdateSkill(0);
 
 	// ライフ処理の更新
 	UpdateLife();
@@ -162,7 +162,7 @@ void CheckHitPlayerObstacle(void)
 			continue;
 
 		// プレイヤーのバウンディングボックス取得
-		BOUNDING_BOX playerBox = ToWorldBoundingBox(player->hitBox, player->pos);
+		BOUNDING_BOX playerBox = ToWorldBoundingBox(player->hit_box, player->pos);
 
 		// 障害物のバウンディングボックス取得
 		OBSTACLE *obstacle = GetObstacle();

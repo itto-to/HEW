@@ -36,6 +36,7 @@
 // 列挙体定義
 //*****************************************************************************
 enum PLAYER_STATE {
+	PLAYER_NONE,
 	PLAYER_ONGROUND,	// 着地
 	PLAYER_JUMP,		// ジャンプ中
 	PLAYER_SLIDING,		// スライディング
@@ -49,15 +50,8 @@ enum PLAYER_STATE {
 //*****************************************************************************
 typedef struct
 {
-<<<<<<< HEAD
-	// スキル利用の為に追加
-	int skillpoint;
-
-
-	
-=======
-	int id;				// プレイヤー番号
->>>>>>> 6b37191a1bfd7515aa0d0fa6763d691d75040191
+	int id;						// プレイヤー番号
+	int skillpoint;				// スキル利用の為に追加
 	bool kengen;				// スキルを発動する権限を持っているかどうか
 	LPDIRECT3DTEXTURE9 texture; // テクスチャ読み込み場所
 	LPDIRECT3DVERTEXBUFFER9 vtx;
@@ -70,12 +64,13 @@ typedef struct
 	float distance;				// 進んだ距離
 	int life;					// プレイヤーの体力
 	PLAYER_STATE state;			// プレイヤーの状態
+	PLAYER_STATE next_state;	// プレイヤーの次の状態
 	float speed_factor;			// 速度係数
 	float state_counter;		// 状態のタイマー
 	bool is_invincible;			// 無敵状態かどうか
 	int invincible_counter;		// 無敵時間のカウント
-	BOUNDING_BOX hitBox;		// プレイヤーの当たり判定
-	BOUNDING_BOX screenBox;		// 画面外判定用ボックス
+	BOUNDING_BOX hit_box;		// プレイヤーの当たり判定
+	BOUNDING_BOX screen_box;	// 画面外判定用ボックス
 } PLAYER;
 
 //*****************************************************************************

@@ -27,6 +27,7 @@
 #define TEXTURE_PLAYER_COOK			"data/TEXTURE/player_cook.png"		// 料理人テクスチャ名
 #define TEXTURE_PLAYER_WIZARD		"data/TEXTURE/player_wizard.png"	// 魔法使いテクスチャ名
 
+#define PLAYER_POS_X		(200.0f)					// プレイヤーのX座標
 #define	PLAYER_PADDING		(-100.0f)					// プレイヤー同士の間隔
 #define	VALUE_MOVE_PLAYER	(0.155f)					// 移動速度
 #define	RATE_MOVE_PLAYER	(0.025f)					// 移動慣性係数
@@ -74,7 +75,7 @@ HRESULT InitPlayer(void)
 		g_playerWk[no].texture = NULL;
 
 		g_playerWk[no].id      = no;
-		g_playerWk[no].pos     = D3DXVECTOR3(100.0f, LANE_Y(no), LANE_Z(no));
+		g_playerWk[no].pos     = D3DXVECTOR3(PLAYER_POS_X, LANE_Y(no), LANE_Z(no));
 		g_playerWk[no].move    = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_playerWk[no].rot     = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_playerWk[no].rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -85,12 +86,12 @@ HRESULT InitPlayer(void)
 		g_playerWk[no].speed_factor = 1.0f;
 		
 		// 当たり判定初期化
-		g_playerWk[no].hitBox.max = PLAYER_BB_MAX;
-		g_playerWk[no].hitBox.min = PLAYER_BB_MIN;
+		g_playerWk[no].hit_box.max = PLAYER_BB_MAX;
+		g_playerWk[no].hit_box.min = PLAYER_BB_MIN;
 
 		// 画面外判定用バウンディングボックス初期化
 		// 画面外判定初期化
-		InitBoundingBox(&g_playerWk[no].screenBox, D3DXVECTOR3(0.0f, 0.0f, 0.0f), PLAYER_WIDTH, PLAYER_HEIGHT, 0.0f);
+		InitBoundingBox(&g_playerWk[no].screen_box, D3DXVECTOR3(0.0f, 0.0f, 0.0f), PLAYER_WIDTH, PLAYER_HEIGHT, 0.0f);
 
 		// 頂点作成
 		MakeVertex(pDevice, &g_playerWk[no].vtx, PLAYER_WIDTH, PLAYER_HEIGHT);
@@ -145,6 +146,8 @@ void UpdatePlayer(void)
 		}
 		PrintDebugProc("速度係数：%f", g_playerWk[no].speed_factor);
 #endif
+
+		PLAYER_STATE next_state;
 		switch (g_playerWk[no].state)
 		{
 		case PLAYER_ONGROUND:
@@ -173,18 +176,6 @@ void UpdatePlayer(void)
 			g_playerWk[no].state = PLAYER_DEAD;
 		}
 
-		if(g_playerWk[no].state == PLAYER_JUMP)
-		{
-			g_playerWk[no].pos += g_playerWk[no].move;
-			g_playerWk[no].move.y += GRAVITY_ACCELARATION;
-		}
-
-		// 着地処理
-		if(g_playerWk[no].pos.y < g_playerWk[no].ground)
-		{
-			g_playerWk[no].pos.y = g_playerWk[no].ground;
-			g_playerWk[no].state = PLAYER_ONGROUND;	// プレイヤーの状態を着地中に
-		}
 
 		// 無敵カウントが一定以上なら元の状態に
 		if (g_playerWk[no].is_invincible)
@@ -196,86 +187,8 @@ void UpdatePlayer(void)
 			}
 		}
 
-
-		//float fDiffRotY;
-
-		//// 目的の角度までの差分
-		//fDiffRotY = g_playerWk[no].rotDest.y - g_playerWk[no].rot.y;
-		//if(fDiffRotY > D3DX_PI)
-		//{
-		//	fDiffRotY -= D3DX_PI * 2.0f;
-		//}
-		//if(fDiffRotY < -D3DX_PI)
-		//{
-		//	fDiffRotY += D3DX_PI * 2.0f;
-		//}
-
-		//// 目的の角度まで慣性をかける
-		//g_playerWk[no].rot.y += fDiffRotY * RATE_ROTATE_PLAYER;
-		//if(g_playerWk[no].rot.y > D3DX_PI)
-		//{
-		//	g_playerWk[no].rot.y -= D3DX_PI * 2.0f;
-		//}
-		//if(g_playerWk[no].rot.y < -D3DX_PI)
-		//{
-		//	g_playerWk[no].rot.y += D3DX_PI * 2.0f;
-		//}
-
-		///// 位置移動
-		//g_playerWk[no].pos.x += g_playerWk[no].move.x;
-		//g_playerWk[no].pos.y += g_playerWk[no].move.y;
-		//g_playerWk[no].pos.z += g_playerWk[no].move.z;
-
-		//if(g_playerWk[no].pos.x < -630.0f)
-		//{
-		//	g_playerWk[no].pos.x = -630.0f;
-		//}
-		//if(g_playerWk[no].pos.x > 630.0f)
-		//{
-		//	g_playerWk[no].pos.x = 630.0f;
-		//}
-		//if(g_playerWk[no].pos.y < 10.0f)
-		//{
-		//	g_playerWk[no].pos.y = 10.0f;
-		//}
-		//if(g_playerWk[no].pos.y > 150.0f)
-		//{
-		//	g_playerWk[no].pos.y = 150.0f;
-		//}
-		//if(g_playerWk[no].pos.z > 630.0f)
-		//{
-		//	g_playerWk[no].pos.z = 630.0f;
-		//}
-		//if(g_playerWk[no].pos.z < -630.0f)
-		//{
-		//	g_playerWk[no].pos.z = -630.0f;
-		//}
-
-		//// 移動量に慣性をかける
-		//g_playerWk[no].move.x += (0.0f - g_playerWk[no].move.x) * RATE_MOVE_PLAYER;
-		//g_playerWk[no].move.y += (0.0f - g_playerWk[no].move.y) * RATE_MOVE_PLAYER;
-		//g_playerWk[no].move.z += (0.0f - g_playerWk[no].move.z) * RATE_MOVE_PLAYER;
-
-
-
-		//if((g_playerWk[no].move.x * g_playerWk[no].move.x
-		//+ g_playerWk[no].move.y * g_playerWk[no].move.y
-		//+ g_playerWk[no].move.z * g_playerWk[no].move.z) > 1.0f)
-		//{
-		//	D3DXVECTOR3 pos;
-
-		//	pos.x = g_playerWk[no].pos.x + sinf(g_playerWk[no].rot.y) * 10.0f;
-		//	pos.y = g_playerWk[no].pos.y + 2.0f;
-		//	pos.z = g_playerWk[no].pos.z + cosf(g_playerWk[no].rot.y) * 10.0f;
-
-		//	// エフェクトの設定
-		//	SetEffect(pos, D3DXVECTOR3(0.0f, 0.0f, 0.0f),
-		//						D3DXCOLOR(0.85f, 0.05f, 0.65f, 0.50f), 14.0f, 14.0f, 20);
-		//	SetEffect(pos, D3DXVECTOR3(0.0f, 0.0f, 0.0f),
-		//						D3DXCOLOR(0.65f, 0.85f, 0.05f, 0.30f), 10.0f, 10.0f, 20);
-		//	SetEffect(pos, D3DXVECTOR3(0.0f, 0.0f, 0.0f),
-		//						D3DXCOLOR(0.45f, 0.45f, 0.05f, 0.15f), 5.0f, 5.0f, 20);
-		//}
+		// ステート変更
+		ChangePlayerState(&g_playerWk[no]);
 	}
 }
 
@@ -296,38 +209,9 @@ void DrawPlayer(void)
 			DrawMesh(g_playerWk[no].vtx, g_playerWk[no].texture, g_playerWk[no].pos, g_playerWk[no].rot, g_playerWk[no].scl);
 		}
 
-		//// 頂点バッファをデバイスのデータストリームにバインド
-		//pDevice->SetStreamSource(0, g_playerWk[no].vtx, 0, sizeof(VERTEX_3D));
-
-		//// 頂点フォーマットの設定
-		//pDevice->SetFVF(FVF_VERTEX_3D);
-
-		//// ワールドマトリックスの初期化
-		//D3DXMatrixIdentity(&mtxWorld);
-
-		//// 回転を反映
-		//D3DXMatrixRotationYawPitchRoll(&mtxRot, g_playerWk[no].rot.y, g_playerWk[no].rot.x, g_playerWk[no].rot.z);
-		//D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxRot);
-
-		//// 移動を反映
-		//D3DXMatrixTranslation(&mtxTranslate, g_playerWk[no].pos.x, g_playerWk[no].pos.y, g_playerWk[no].pos.z);
-		//D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTranslate);
-
-		//// ワールドマトリックスの設定
-		//pDevice->SetTransform(D3DTS_WORLD, &mtxWorld);
-
-		//// テクスチャの設定
-		//pDevice->SetTexture(0, g_pD3DTextureKnight);
-
-		//// 描画
-		//if (!g_playerWk[no].is_invincible || ((g_playerWk[no].invincible_counter % 10) > 4))
-		//{
-		//	pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, NUM_POLYGON);
-		//}
-
 #ifdef _DEBUG
 		// バウンディングボックスを描画
-		BOUNDING_BOX worldBox = ToWorldBoundingBox(g_playerWk[no].hitBox, g_playerWk[no].pos);
+		BOUNDING_BOX worldBox = ToWorldBoundingBox(g_playerWk[no].hit_box, g_playerWk[no].pos);
 		DrawDebugBoundingBox(worldBox);
 
 		// デバッグ情報を表示
@@ -359,18 +243,6 @@ void DrawPlayer(void)
 		}
 
 #endif
-	}
-}
-
-
-void ChangePlayerState(PLAYER_STATE nextState) {
-	// 現在のステートのExit処理
-
-
-	// 次のステートのEnter処理
-	switch (nextState)
-	{
-		
 	}
 }
 

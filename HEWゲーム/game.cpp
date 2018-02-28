@@ -17,6 +17,7 @@
 #include "player.h"
 #include "score.h"
 #include "shadow.h"
+#include "skill.h"
 #include "sound.h"
 #include "stage.h"
 #include "timer.h"
@@ -57,12 +58,8 @@ HRESULT InitGame(void)
 	// 背景の初期化
 	InitBackground();
 
-	// タイマーの初期化
-	InitTimer();
-	ResetTimer(30);
-
-	// スコアの初期化
-	InitScore();
+	// スキルゲージの初期化
+	InitSkill();
 
 	// BGM再生
 	PlaySound(SOUND_LABEL_BGM000);
@@ -92,8 +89,8 @@ void UninitGame(void)
 	// 背景の終了処理
 	UninitBackground();
 
-	// タイマーの終了処理
-	UninitTimer();
+	// スキルゲージの終了処理
+	UninitSkill();
 
 	// スコアの終了処理
 	UninitScore();
@@ -124,14 +121,11 @@ void UpdateGame(void)
 	// プレイヤーと障害物の当たり判定
 	CheckHitPlayerObstacle();
 
+	// スキルの更新処理
+	UpdateSkill();
+
 	// ライフ処理の更新
 	UpdateLife();
-
-	// タイマー処理の更新
-	UpdateTimer();
-
-	// スコア処理の更新
-	UpdateScore();
 }
 
 //=============================================================================
@@ -151,15 +145,11 @@ void DrawGame(void)
 	// プレイヤー処理の描画
 	DrawPlayer();
 
+	// スキルの描画
+	DrawSkill();
 
 	// ライフ処理の描画
 	DrawLife();
-
-	// タイマー処理の描画
-	DrawTimer();
-
-	// スコア処理の描画
-	DrawScore();
 }
 
 void CheckHitPlayerObstacle(void)

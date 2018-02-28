@@ -15,6 +15,22 @@
 //*****************************************************************************
 #define MAX_PLAYER			(4)							// プレイヤーの数
 
+#define PLAYER_WIDTH		(100)
+#define PLAYER_HEIGHT		(100)
+#define HALF_PLAYER_WIDTH	(PLAYER_WIDTH / 2)
+#define HALF_PLAYER_HEIGHT	(PLAYER_HEIGHT / 2)
+#define HALF_PLAYER_DEPTH	(0.0f)
+
+#define PLAYER_JUMP_SPEED	(15.f)						// プレイヤーのジャンプ初速
+#define PLAYER_BIG_JUMP_SPEED (20.f)					// プレイヤーの大ジャンプ初速
+#define GRAVITY_ACCELARATION (-0.5f)					// 重力加速度
+
+#define PLAYER_BB_MAX		(D3DXVECTOR3(HALF_PLAYER_WIDTH, HALF_PLAYER_HEIGHT, HALF_PLAYER_DEPTH))// プレイヤーバウンディングボックスのmax頂点座標
+#define PLAYER_BB_MIN		(-PLAYER_BB_MAX)			// プレイヤーバウンディングボックスのmin頂点座標
+
+#define SLIDING_HIT_BOX		{D3DXVECTOR3(-HALF_PLAYER_WIDTH, -HALF_PLAYER_HEIGHT, -HALF_PLAYER_DEPTH), D3DXVECTOR3(HALF_PLAYER_WIDTH, 0.0f, HALF_PLAYER_DEPTH)}
+
+
 
 //*****************************************************************************
 // 列挙体定義
@@ -22,10 +38,10 @@
 enum PLAYER_STATE {
 	PLAYER_ONGROUND,	// 着地
 	PLAYER_JUMP,		// ジャンプ中
+	PLAYER_SLIDING,		// スライディング
 	PLAYER_DEAD,		// 死亡
 	PLAYER_STATEMAX,
 };
-
 
 
 //*****************************************************************************
@@ -46,6 +62,7 @@ typedef struct
 	float distance;				// 進んだ距離
 	int life;					// プレイヤーの体力
 	PLAYER_STATE state;			// プレイヤーの状態
+	float speed_factor;			// 速度係数
 	float state_counter;		// 状態のタイマー
 	bool is_invincible;			// 無敵状態かどうか
 	int invincible_counter;		// 無敵時間のカウント

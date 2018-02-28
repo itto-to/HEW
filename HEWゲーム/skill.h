@@ -35,8 +35,10 @@ typedef struct
 //**************************************************************
 // プロトタイプ宣言
 //**************************************************************
-
-
+HRESULT InitSkill(void);
+void UninitSkill(void);
+void UpdateSkill(void);
+void DrawSkill(void);
 
 
 #endif

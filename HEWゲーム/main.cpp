@@ -94,8 +94,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						WS_OVERLAPPEDWINDOW,
 						CW_USEDEFAULT,
 						CW_USEDEFAULT,
-						SCREEN_WIDTH + GetSystemMetrics(SM_CXDLGFRAME) * 2,
-						SCREEN_HEIGHT + GetSystemMetrics(SM_CXDLGFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION),
+						SCREEN_PIXEL_WIDTH + GetSystemMetrics(SM_CXDLGFRAME) * 2,
+						SCREEN_PIXEL_HEIGHT + GetSystemMetrics(SM_CXDLGFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION),
 						NULL,
 						NULL,
 						hInstance,
@@ -223,8 +223,8 @@ HRESULT Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	// デバイスのプレゼンテーションパラメータの設定
 	ZeroMemory( &d3dpp, sizeof(d3dpp) );						// ワークをゼロクリア
 	d3dpp.BackBufferCount			= 1;
-	d3dpp.BackBufferWidth			= SCREEN_WIDTH;				// ゲーム画面サイズ(幅)
-	d3dpp.BackBufferHeight			= SCREEN_HEIGHT;			// ゲーム画面サイズ(高さ)
+	d3dpp.BackBufferWidth			= SCREEN_PIXEL_WIDTH;				// ゲーム画面サイズ(幅)
+	d3dpp.BackBufferHeight			= SCREEN_PIXEL_HEIGHT;			// ゲーム画面サイズ(高さ)
 	d3dpp.BackBufferFormat			= d3ddm.Format;				// カラーモードの指定
 	d3dpp.SwapEffect				= D3DSWAPEFFECT_DISCARD;	// 映像信号に同期してフリップする
 	d3dpp.Windowed					= bWindow;					// ウィンドウモード
@@ -561,7 +561,7 @@ void ExitScene(void)
 //=============================================================================
 void DrawFPS(void)
 {
-	RECT rect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+	RECT rect = {0, 0, SCREEN_PIXEL_WIDTH, SCREEN_PIXEL_HEIGHT};
 	char str[256];
 
 	wsprintf(str, "FPS:%d\n", g_nCountFPS);

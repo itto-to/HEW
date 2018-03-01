@@ -166,7 +166,7 @@ void CheckHitPlayerObstacle(void)
 
 		// 障害物のバウンディングボックス取得
 		OBSTACLE *obstacle = GetObstacle();
-		BOUNDING_BOX obstacleBox = ToWorldBoundingBox(obstacle->hitBox, obstacle->pos);
+		BOUNDING_BOX obstacleBox = ToWorldBoundingBox(obstacle->hit_box, obstacle->pos);
 
 		if (IsIntersectedBoundingBox(playerBox, obstacleBox))
 		{

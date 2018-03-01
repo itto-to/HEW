@@ -11,6 +11,7 @@
 #include "debugproc.h"
 #include "input.h"
 #include "player.h"
+#include "stage.h"
 
 
 //*****************************************************************************
@@ -111,9 +112,10 @@ void UpdatePlayerOnGround(PLAYER *player)
 
 void UpdatePlayerJump(PLAYER *player)
 {
+	float speed_factor = GetLane(player->lane_no)->speed_factor;
 	// y = v0 * t + 1 / 2 * g * t^2
 	// ジャンプ処理
-	player->state_counter += player->speed_factor;
+	player->state_counter += speed_factor;
 	player->pos.y = player->ground + PLAYER_JUMP_SPEED * player->state_counter + 0.5f * GRAVITY_ACCELARATION * player->state_counter * player->state_counter;
 
 	//player->pos += player->move * player->speed_factor;
@@ -129,7 +131,8 @@ void UpdatePlayerJump(PLAYER *player)
 
 void UpdatePlayerSliding(PLAYER *player)
 {
-	player->state_counter += player->speed_factor;
+	float speed_factor = GetLane(player->lane_no)->speed_factor;
+	player->state_counter += speed_factor;
 	if (player->state_counter >= SLIDING_COUNT)	// スライディング時間が一定以上なら通常状態に戻す
 	{
 		player->next_state = PLAYER_ONGROUND;

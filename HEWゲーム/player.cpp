@@ -27,7 +27,7 @@
 #define TEXTURE_PLAYER_COOK			"data/TEXTURE/player_cook.png"		// 料理人テクスチャ名
 #define TEXTURE_PLAYER_WIZARD		"data/TEXTURE/player_wizard.png"	// 魔法使いテクスチャ名
 
-#define PLAYER_POS_X		(200.0f)					// プレイヤーのX座標
+#define PLAYER_POS_X		(400.0f)					// プレイヤーのX座標
 #define	PLAYER_PADDING		(-100.0f)					// プレイヤー同士の間隔
 #define	VALUE_MOVE_PLAYER	(0.155f)					// 移動速度
 #define	RATE_MOVE_PLAYER	(0.025f)					// 移動慣性係数
@@ -74,7 +74,7 @@ HRESULT InitPlayer(void)
 	{
 		g_playerWk[no].texture = NULL;
 
-		g_playerWk[no].id      = no;
+		g_playerWk[no].lane_no      = no;
 		g_playerWk[no].pos     = D3DXVECTOR3(PLAYER_POS_X, LANE_Y(no), LANE_Z(no));
 		g_playerWk[no].move    = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 		g_playerWk[no].rot     = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
@@ -136,17 +136,6 @@ void UpdatePlayer(void)
 {
 	for(int no = 0; no < MAX_PLAYER; no++)
 	{
-#ifdef _DEBUG
-		// TEST: 速度変化テスト
-		if (GetKeyboardPress(DIK_I)) {
-			g_playerWk[no].speed_factor += 0.1f;
-		}
-		if (GetKeyboardPress(DIK_O)) {
-			g_playerWk[no].speed_factor -= 0.1f;
-		}
-		PrintDebugProc("速度係数：%f", g_playerWk[no].speed_factor);
-#endif
-
 		PLAYER_STATE next_state;
 		switch (g_playerWk[no].state)
 		{

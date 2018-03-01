@@ -50,7 +50,7 @@ enum PLAYER_STATE {
 //*****************************************************************************
 typedef struct
 {
-	int id;						// プレイヤー番号
+	int lane_no;				// 所属するレーン番号
 	int skillpoint;				// スキル利用の為に追加
 	bool kengen;				// スキルを発動する権限を持っているかどうか
 	LPDIRECT3DTEXTURE9 texture; // テクスチャ読み込み場所

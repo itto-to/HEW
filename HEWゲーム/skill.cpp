@@ -34,10 +34,11 @@
 #define SKILLBAR_HEIGHT	(90.0f)
 
 // その他ゲージ関連
-#define SKILL_LEVELUP	(5)			// レベルアップに必要な値
+#define LVUP_POINT	(5)			// レベルアップに必要な値
 //***************************************************************
 // プロトタイプ宣言
 //***************************************************************
+
 
 //***************************************************************
 // グローバル変数
@@ -48,14 +49,21 @@ SKILL skillWk;			// スキル構造体
 // 関数名:		HRESULT InitSkill(void)
 // 引数:		なし
 // 戻り値:		なし
-// 説明:		スキル関連の初期 化
+// 説明:		スキル関連の初期化
 //***************************************************************
 HRESULT InitSkill(void)
 {
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 
 	// 頂点情報の作成
-	//MakeVertexModellife(pDevice);
+	MakeVertexSkill(pDevice);
+
+	//スキルレベルを初期化
+	skillWk.lv = 0;
+	// スキルゲージの値を初期化
+	skillWk.gage = 0.0f;
+	// レベルアップに必要な値を設定
+	skillWk.gage_lvup = LVUP_POINT;
 
 	// ゲージ
 	D3DXCreateTextureFromFile(pDevice,
@@ -121,7 +129,7 @@ void UpdateSkill(float gageup)
 	skillWk.gage += gageup;
 	
 	// もしゲージが一定以上貯まっていたなら
-	if(skillWk.gage >= 5)
+	if(skillWk.gage >= LVUP_POINT)
 	{
 		skillWk.lv++;				// レベルを上げて
 		skillWk.gage = 0.0f;		// 値を初期化

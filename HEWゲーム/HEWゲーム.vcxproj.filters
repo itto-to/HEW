@@ -84,6 +84,9 @@
     <ClInclude Include="mesh.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="skill.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bullet.cpp">
@@ -153,6 +156,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="mesh.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="skill.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
